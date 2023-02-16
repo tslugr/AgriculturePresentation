@@ -1,5 +1,9 @@
-﻿using BusinessLayer.Concrete;
+﻿using BusinessLayer.Abstract;
+using BusinessLayer.Concrete;
+using DataAccessLayer.Concrete;
 using DataAccessLayer.Concrete.EntityFramework;
+using EntityLayer.Concrete;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -8,13 +12,39 @@ using System.Threading.Tasks;
 
 namespace AgriculturePresentation.Controllers
 {
+    [AllowAnonymous]
     public class DefaultController : Controller
     {
-        ServiceManager serviceManager = new ServiceManager(new EfServiceDal());
+
+
+        private readonly IContactService _contactService;
+
+        public DefaultController(IContactService contactService)
+        {
+            _contactService = contactService;
+        }
+
         public IActionResult Index()
         {
-            var values = serviceManager.GetListAll();
-            return View(values);
+      
+            return View();
+        }
+        [HttpGet]
+        public PartialViewResult SendMessage()
+        {
+        return PartialView();
+        }
+
+        [HttpPost]
+        public IActionResult SendMessage(Contact contact)
+        {
+            contact.Date= DateTime.Parse(DateTime.Now.ToShortDateString());
+            _contactService.Insert(contact);
+            return RedirectToAction("Index","Default");
+        }
+
+        public PartialViewResult ScriptPartial()
+        { return PartialView(); 
         }
     }
 }
